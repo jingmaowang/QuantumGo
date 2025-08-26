@@ -1,8 +1,10 @@
-use crate::entity::{RoomInfo, User};
+use crate::entity::{RoomInfo, User, UserRanking, LeaderboardEntry};
 use bcrypt::{DEFAULT_COST, hash, verify};
 use sqlx::postgres::PgPoolOptions;
 use sqlx::{Error, PgPool};
 use uuid::Uuid;
+use sqlx::Row;
+
 
 const MAX_CONNECTIONS: u32 = 5;
 
@@ -62,6 +64,29 @@ impl Database {
         .execute(pool)
         .await?;
 
+        // Create user_rankings table
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS user_rankings (
+                id SERIAL PRIMARY KEY,
+                user_id UUID NOT NULL,
+                model INTEGER NOT NULL,
+                rating DOUBLE PRECISION NOT NULL DEFAULT 1500.0,
+                rd DOUBLE PRECISION NOT NULL DEFAULT 350.0,
+                vol DOUBLE PRECISION NOT NULL DEFAULT 0.06,
+                games_played INTEGER NOT NULL DEFAULT 0,
+                wins INTEGER NOT NULL DEFAULT 0,
+                losses INTEGER NOT NULL DEFAULT 0,
+                draws INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                UNIQUE(user_id, model)
+            )
+            "#,
+        )
+        .execute(pool)
+        .await?;
+
         Ok(())
     }
 
@@ -70,14 +95,21 @@ impl Database {
         let user_id = Uuid::new_v4();
         let hashed_password = hash_password(password)?;
 
-        sqlx::query_as::<_, User>(
+        let user = sqlx::query_as::<_, User>(
             "INSERT INTO users (user_id, username, password) VALUES ($1, $2, $3) RETURNING *",
         )
         .bind(user_id)
         .bind(username)
         .bind(hashed_password)
         .fetch_one(&self.pool)
-        .await
+        .await?;
+
+        // 为新用户创建默认评分记录
+        for model in [9, 13, 19] {
+            self.create_user_ranking(&user_id, model).await?;
+        }
+
+        Ok(user)
     }
 
     pub async fn verify_user(&self, username: &str, password: &str) -> Result<User, Error> {
@@ -189,21 +221,22 @@ impl Database {
             WHERE id = $12 RETURNING *
             "#,
         )
-        .bind(room_info.visitor_id)
-        .bind(&room_info.status)
-        .bind(&room_info.round)
-        .bind(&room_info.winner)
-        .bind(&room_info.board)
-        .bind(room_info.countdown)
-        .bind(room_info.moves)
-        .bind(room_info.black_lost)
-        .bind(room_info.white_lost)
-        .bind(room_info.model)
-        .bind(&room_info.chessman_records)
-        .bind(room_info.id)
+        .bind(room_info.visitor_id)       // $1
+        .bind(&room_info.status)          // $2
+        .bind(&room_info.round)           // $3 <- 补上 round
+        .bind(&room_info.winner)          // $4
+        .bind(&room_info.board)           // $5
+        .bind(room_info.countdown)        // $6
+        .bind(room_info.moves)            // $7
+        .bind(room_info.black_lost)       // $8
+        .bind(room_info.white_lost)       // $9
+        .bind(room_info.model)            // $10
+        .bind(&room_info.chessman_records)// $11
+        .bind(room_info.id)               // $12
         .fetch_one(&self.pool)
         .await
     }
+    
 
     // Reserved for future use
     #[allow(dead_code)]
@@ -221,6 +254,92 @@ impl Database {
             .execute(&self.pool)
             .await?;
         Ok(())
+    }
+
+    // 新增：用户评分相关操作
+    pub async fn create_user_ranking(&self, user_id: &Uuid, model: i32) -> Result<UserRanking, Error> {
+        sqlx::query_as::<_, UserRanking>(
+            r#"
+            INSERT INTO user_rankings (user_id, model, rating, rd, vol, games_played, wins, losses, draws)
+            VALUES ($1, $2, 1500.0, 350.0, 0.06, 0, 0, 0, 0)
+            RETURNING *
+            "#,
+        )
+        .bind(user_id)
+        .bind(model)
+        .fetch_one(&self.pool)
+        .await
+    }
+
+    pub async fn get_user_ranking(&self, user_id: &Uuid, model: i32) -> Result<UserRanking, Error> {
+        sqlx::query_as::<_, UserRanking>(
+            "SELECT * FROM user_rankings WHERE user_id = $1 AND model = $2"
+        )
+        .bind(user_id)
+        .bind(model)
+        .fetch_one(&self.pool)
+        .await
+    }
+
+    pub async fn update_user_ranking(&self, ranking: &UserRanking) -> Result<UserRanking, Error> {
+        sqlx::query_as::<_, UserRanking>(
+            r#"
+            UPDATE user_rankings SET
+                rating = $1, rd = $2, vol = $3, games_played = $4, wins = $5, losses = $6, draws = $7, updated_at = NOW()
+            WHERE user_id = $8 AND model = $9 RETURNING *
+            "#,
+        )
+        .bind(ranking.rating)
+        .bind(ranking.rd)
+        .bind(ranking.vol)
+        .bind(ranking.games_played)
+        .bind(ranking.wins)
+        .bind(ranking.losses)
+        .bind(ranking.draws)
+        .bind(ranking.user_id)
+        .bind(ranking.model)
+        .fetch_one(&self.pool)
+        .await
+    }
+
+    pub async fn get_leaderboard(&self, model: i32, limit: i32) -> Result<Vec<LeaderboardEntry>, Error> {
+        let rows = sqlx::query(
+            r#"
+            SELECT
+                u.username,
+                ur.rating,
+                ur.rd,
+                ur.games_played,
+                ur.wins,
+                ur.losses,
+                ur.draws
+            FROM user_rankings ur
+            JOIN users u ON ur.user_id = u.user_id
+            WHERE ur.model = $1 AND ur.games_played > 0
+            ORDER BY ur.rating DESC
+            LIMIT $2
+            "#
+        )
+        .bind(model)
+        .bind(limit)
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut leaderboard = Vec::new();
+        for row in rows {
+            let entry = LeaderboardEntry {
+                username: row.get::<String, _>("username"),
+                rating: row.get::<f64, _>("rating"),
+                rd: row.get::<f64, _>("rd"),
+                games_played: row.get::<i32, _>("games_played"),
+                wins: row.get::<i32, _>("wins"),
+                losses: row.get::<i32, _>("losses"),
+                draws: row.get::<i32, _>("draws"),
+            };
+            leaderboard.push(entry);
+        }
+
+        Ok(leaderboard)
     }
 }
 

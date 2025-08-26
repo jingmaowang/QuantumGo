@@ -19,6 +19,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 mod api;
 mod db;
 mod entity;
+mod rating;
 mod ws;
 
 #[tokio::main]
@@ -61,6 +62,7 @@ async fn main() {
         .route("/getGameInfo", post(api::get_game_info))
         .route("/userRegister", post(api::register))
         .route("/getUserInfo", post(api::login))
+        .route("/getLeaderboard", post(api::get_leaderboard))
         .route("/ws/{user_id}/{room_id}", any(ws::ws_handler))
         .with_state(state)
         // logging so we can see what's going on

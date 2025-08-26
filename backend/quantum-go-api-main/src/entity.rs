@@ -33,14 +33,6 @@ pub struct RoomInfo {
     pub chessman_records: serde_json::Value,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Chessman {
-    pub position: String,
-    #[serde(rename(serialize = "type", deserialize = "type"))]
-    pub color: String,
-    pub brother: String,
-}
-
 #[derive(Clone, Deserialize, Serialize, FromRow)]
 pub struct User {
     #[serde(skip_serializing)]
@@ -51,4 +43,50 @@ pub struct User {
     pub username: String,
     #[serde(rename(serialize = "user_password", deserialize = "user_password"))]
     pub password: String,
+}
+
+// 新增：用户评分结构
+#[derive(Clone, Deserialize, Serialize, FromRow)]
+pub struct UserRanking {
+    pub id: i32,
+    pub user_id: Uuid,
+    pub model: i32, // 9, 13, 19
+    pub rating: f64,
+    pub rd: f64,    // Rating Deviation
+    pub vol: f64,   // Volatility
+    pub games_played: i32,
+    pub wins: i32,
+    pub losses: i32,
+    pub draws: i32,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+}
+
+// 新增：排行榜条目
+#[derive(Clone, Deserialize, Serialize)]
+pub struct LeaderboardEntry {
+    pub username: String,
+    pub rating: f64,
+    pub rd: f64,
+    pub games_played: i32,
+    pub wins: i32,
+    pub losses: i32,
+    pub draws: i32,
+}
+
+// 新增：游戏结果
+#[derive(Clone, Deserialize, Serialize)]
+pub struct GameResult {
+    pub winner: Option<String>, // "black", "white", or None for draw
+    pub black_score: i32,
+    pub white_score: i32,
+    pub model: i32,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Chessman {
+    pub position: String,
+    #[serde(rename(serialize = "type", deserialize = "type"))]
+    pub color: String,
+    pub brother: String,
 }

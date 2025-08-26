@@ -33,6 +33,7 @@ const text = {
     navbar: {
       logo: "QuantumGo",
       lang: "Language",
+      leaderboard: "Leaderboard",
       share: "Share",
       share_website: "Click on the link to experience online quantum Go battles: ",
       share_battle: "Click on the link to play quantum Go with me now: ",
@@ -94,6 +95,19 @@ const text = {
       room_finished: "The game has already finished.",
       join_self: "You cannot join your own room."
     },
+    leaderboard: {
+      title: "Player Leaderboard",
+      subtitle: "View your ranking among Quantum Go players",
+      rank: "Rank",
+      username: "Username",
+      rating: "Rating",
+      rd: "RD",
+      games: "Games",
+      win_rate: "Win Rate",
+      total_players: "Total Players",
+      avg_rating: "Average Rating",
+      no_data: "No players found for this board size"
+    },
     login: {
       title_login: "Login",
       title_register: "Register",
@@ -115,6 +129,7 @@ const text = {
     navbar: {
       logo: "量子围棋",
       lang: "语言",
+      leaderboard: "排行榜",
       share: "分享",
       share_content: "点击链接体验在线量子围棋对战:  ",
       share_battle: "点击链接即刻与我对弈量子围棋对弈: ",
@@ -175,6 +190,19 @@ const text = {
       room_playing: "对局正在进行中",
       room_finished: "对局已经结束",
       join_self: "你不能加入自己的房间"
+    },
+    leaderboard: {
+      title: "玩家排行榜",
+      subtitle: "查看您在量子围棋玩家中的排名",
+      rank: "排名",
+      username: "用户名",
+      rating: "评分",
+      rd: "RD",
+      games: "对局",
+      win_rate: "胜率",
+      total_players: "总玩家数",
+      avg_rating: "平均评分",
+      no_data: "未找到该棋盘尺寸的玩家"
     },
     login: {
       title_login: "登录",

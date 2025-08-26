@@ -1,7 +1,8 @@
 use crate::db::Database;
 use crate::entity::Room;
 use crate::entity::WsSender;
-use crate::entity::{Chessman, RoomInfo};
+use crate::entity::{Chessman, RoomInfo, GameResult};
+use crate::rating::RatingSystem;
 use axum::{
     extract::{
         Path, State,
@@ -314,7 +315,7 @@ async fn update_winner(
     room_info: &RoomInfo,
     data: &SetWinner,
 ) -> Result<RoomInfo, sqlx::Error> {
-    state
+    let updated_room = state
         .db
         .update_room(&RoomInfo {
             id: room_info.id,
@@ -332,7 +333,36 @@ async fn update_winner(
             model: room_info.model.clone(),
             chessman_records: room_info.chessman_records.clone(),
         })
-        .await
+        .await?;
+
+    // 游戏结束后更新评分
+    let rating_system = RatingSystem::new();
+    let game_result = GameResult {
+        winner: Some(data.winner.clone()),
+        black_score: room_info.black_lost,
+        white_score: room_info.white_lost,
+        model: room_info.model,
+    };
+
+    // 在后台更新评分，不阻塞响应
+    let db_clone = state.db.clone();
+    let owner_id = room_info.owner_id;
+    
+    // 如果有访客，更新双方评分
+    if let Some(visitor_id) = room_info.visitor_id {
+        tokio::spawn(async move {
+            if let Err(err) = rating_system.update_ratings(
+                &db_clone,
+                &game_result,
+                owner_id,
+                visitor_id,
+            ).await {
+                info!("Failed to update ratings: {}", err);
+            }
+        });
+    }
+
+    Ok(updated_room)
 }
 
 async fn cleanup_connection(state: &AppState, room_id: Uuid, user_id: Uuid, room_info: &RoomInfo) {

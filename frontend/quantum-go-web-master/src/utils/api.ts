@@ -45,6 +45,11 @@ class Api {
     const data = { username: user_name, password: user_password };
     return this.request("/userRegister", data);
   }
+
+  public async getLeaderboard(model: number, limit: number = 50): Promise<Response> {
+    const data = { model, limit };
+    return this.request("/getLeaderboard", data);
+  }
 }
 
 const api = new Api(Config.apiUrl);

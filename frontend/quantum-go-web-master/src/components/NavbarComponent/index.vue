@@ -6,6 +6,10 @@
         <!--        <t-icon name="translate-1" />-->
         <span>{{ lang.text.navbar.lang }}</span>
       </button>
+      <button class="nav-button" @click="goToLeaderboard">
+        <!--        <t-icon name="trophy" />-->
+        <span>{{ lang.text.navbar.leaderboard }}</span>
+      </button>
       <button class="nav-button" @click="handleShare">
         <!--        <t-icon name="share" />-->
         <span>{{ lang.text.navbar.share }}</span>
@@ -36,6 +40,10 @@ const logoClick = () => {
 
 const changeLanguage = () => {
   store.commit("lang/changeLanguage");
+};
+
+const goToLeaderboard = () => {
+  router.push('/leaderboard');
 };
 
 const handleShare = async () => {

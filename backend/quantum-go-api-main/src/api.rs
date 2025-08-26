@@ -1,4 +1,4 @@
-use crate::entity::{RoomInfo, User};
+use crate::entity::{RoomInfo, User, LeaderboardEntry};
 use axum::{Json, extract::State, http::StatusCode};
 use serde::Deserialize;
 use uuid::Uuid;
@@ -27,6 +27,12 @@ pub struct CreateRoom {
 #[derive(Deserialize)]
 pub struct GetGameInfo {
     room_id: Uuid,
+}
+
+#[derive(Deserialize)]
+pub struct GetLeaderboardRequest {
+    model: i32,
+    limit: Option<i32>,
 }
 
 // Authentication endpoints
@@ -111,6 +117,34 @@ pub async fn get_game_info(
             StatusCode::NOT_FOUND,
             Json(serde_json::json!({
                 "error": "Room not found"
+            })),
+        )),
+    }
+}
+
+// 新增：排行榜接口
+#[axum::debug_handler]
+pub async fn get_leaderboard(
+    State(state): State<crate::ws::AppState>,
+    Json(req): Json<GetLeaderboardRequest>,
+) -> ApiResult<Vec<LeaderboardEntry>> {
+    let limit = req.limit.unwrap_or(50);
+    
+    if ![9, 13, 19].contains(&req.model) {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "error": "Invalid model. Must be 9, 13, or 19"
+            })),
+        ));
+    }
+
+    match state.db.get_leaderboard(req.model, limit).await {
+        Ok(leaderboard) => Ok((StatusCode::OK, Json(leaderboard))),
+        Err(err) => Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({
+                "error": format!("Failed to get leaderboard: {}", err)
             })),
         )),
     }
