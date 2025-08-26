@@ -1,0 +1,191 @@
+@mixin chess-white {
+  background: radial-gradient(circle at 30% 30%, #fff, #ccc);
+  box-shadow: inset -4px -4px 8px rgba(255, 255, 255, 0.8),
+  inset 4px 4px 8px rgba(0, 0, 0, 0.2),
+  0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+@mixin chess-black {
+  background: radial-gradient(circle at 30% 30%, #444, #000);
+  box-shadow: inset -4px -4px 8px rgba(255, 255, 255, 0.4),
+  inset 4px 4px 8px rgba(0, 0, 0, 0.4),
+  0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+@mixin chess-quantum2 {
+
+}
+
+.container {
+  position: relative;
+  border-radius: 4%;
+  background: white;
+
+  &.board-hover {
+
+    .quantum {
+      transition: all 1s ease;
+
+      &.black {
+        opacity: 0.8 !important;
+        animation: black 6s infinite;
+
+        @keyframes black {
+          0% {
+            box-shadow: 0 0 12px 3px rgba(0, 0, 0, 0.76);
+          }
+          50% {
+            box-shadow: 0 0 12px 4px rgba(0, 0, 0, 1);
+          }
+          100% {
+            box-shadow: 0 0 12px 3px rgba(0, 0, 0, 0.76);
+          }
+        }
+      }
+
+      &.white {
+        opacity: 0.8 !important;
+        animation: white 6s infinite;
+
+        @keyframes white {
+          0% {
+            box-shadow: 0 0 10px 3px rgba(200, 200, 200, 0.86);
+          }
+          50% {
+            box-shadow: 0 0 10px 7px rgba(200, 200, 200, 1);
+          }
+          100% {
+            box-shadow: 0 0 10px 3px rgba(200, 200, 200, 0.86);
+          }
+        }
+      }
+    }
+  }
+
+  .board {
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: relative;
+    border-radius: 4%;
+    background: #FDEACF;
+  }
+
+  .chessman-box {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+
+    .chess {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .img {
+        width: 74%;
+        height: 74%;
+      }
+    }
+
+    .chessman {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      & > div {
+        width: 74%;
+        height: 74%;
+        border-radius: 50%;
+      }
+
+      .quantum {
+        position: relative;
+
+        &.black {
+          box-shadow: 0 0 12px 3px rgba(0, 0, 0, 0.8);
+          opacity: 0.84;
+          //animation: black 8s infinite;
+          //
+          //@keyframes black {
+          //  0% {
+          //    box-shadow: 0 0 12px 3px rgba(0, 0, 0, 0.76);
+          //  }
+          //  50% {
+          //    box-shadow: 0 0 12px 3px rgba(0, 0, 0, 1);
+          //  }
+          //  100% {
+          //    box-shadow: 0 0 12px 3px rgba(0, 0, 0, 0.76);
+          //  }
+          //}
+        }
+
+        &.white {
+          box-shadow: 0 0 10px 6px rgba(200, 200, 200, 0.96);
+          opacity: 0.8;
+          //animation: white 8s infinite;
+          //
+          //@keyframes white {
+          //  0% {
+          //    box-shadow: 0 0 10px 3px rgba(200, 200, 200, 0.86);
+          //  }
+          //  50% {
+          //    box-shadow: 0 0 10px 3px rgba(200, 200, 200, 1);
+          //  }
+          //  100% {
+          //    box-shadow: 0 0 10px 3px rgba(200, 200, 200, 0.86);
+          //  }
+          //}
+        }
+
+        .background {
+          width: 100%;
+          height: 100%;
+          @include chess-quantum2;
+        }
+      }
+
+      .black {
+        @include chess-black;
+      }
+
+      .white {
+        @include chess-white;
+      }
+
+      .black.last,
+      .white.last {
+        position: relative;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 20%;
+          height: 20%;
+          //border-radius: 50%;
+          transform: translate(-50%, -50%);
+          //background: #B22222;
+          background: #FF0000ee;
+          //box-shadow: 0 0 16px 4px rgba(255, 114, 91, 0.7);
+        }
+      }
+
+      .empty {
+        opacity: 0;
+
+        &.allowed {
+
+          &.hover {
+            opacity: 0.5;
+          }
+        }
+      }
+    }
+  }
+}

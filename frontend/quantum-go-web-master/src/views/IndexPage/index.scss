@@ -1,0 +1,211 @@
+.main {
+  //flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  gap: 6vw;
+  max-height: 100%;
+  max-width: 100%;
+
+  @media (max-width: 992px) {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    overflow: hidden;
+
+    @media (max-width: 992px) {
+      margin-top: 0;
+      justify-content: center;
+    }
+
+    @media (min-width: 992px) {
+      width: 50%;
+      max-width: 50vw;
+      align-items: center;
+    }
+
+    .title {
+      margin-top: 10vh;
+      margin-left: 6vw;
+      margin-right: 6vw;
+      font-size: clamp(2.5rem, 5.4vw, 5.4rem);
+      font-weight: bold;
+      color: #364351;
+      text-align: justify;
+      text-justify: inter-word;
+      min-width: 0;
+      white-space: nowrap;
+
+      @media (max-width: 992px) {
+        margin-top: 0;
+        align-self: center;
+      }
+    }
+
+    .desc {
+      margin-top: 6vh;
+      margin-left: 6vw;
+      margin-right: 6vw;
+      font-size: clamp(1.2rem, 2vw, 2rem);
+      color: #3A5265;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+
+      @media (max-width: 992px) {
+        margin-top: 4vh;
+        align-self: center;
+        text-align: justify;
+      }
+
+      .btn {
+        margin-top: 4vh;
+        margin-right: auto;
+        display: inline-flex;
+        padding: 0.44em 1.8em; /* 使用 em 单位，相对于字体大小 */
+        background: #86A3AB;
+        color: #FFFBF9;
+        font-size: clamp(1.6rem, 4vw, 2rem); /* 响应式字体大小 */
+        border-radius: 100px; /* 足够大的值保持圆形边缘 */
+        white-space: nowrap; /* 防止文字换行 */
+        min-width: min-content; /* 最小宽度适应内容 */
+        transition: all 0.3s ease; /* 可选：平滑过渡效果 */
+
+        /* 自适应策略 */
+        width: auto; /* 确保宽度自适应 */
+        max-width: 100%; /* 防止超出父容器 */
+        box-sizing: border-box; /* 包含 padding 在宽度内 */
+        justify-content: center;
+        align-items: center;
+
+        @media (min-width: 992px) {
+          //margin-left: 4vh;
+        }
+
+        @media (max-width: 992px) {
+          margin-left: auto;
+          //margin-left: 4vh;
+        }
+
+        &:hover {
+          opacity: 0.86;
+          transform: scale(1.1);
+        }
+      }
+    }
+  }
+
+  .right {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    z-index: 1;
+
+    @media (max-width: 992px) {
+      margin-top: 0;
+      justify-content: center;
+    }
+
+    @media (min-width: 992px) {
+      width: 50vw !important;
+      position: relative;
+    }
+
+    .board {
+      height: clamp(120px, 70%, 70%);
+      aspect-ratio: 1 / 1;
+      transition: all 0.4s ease;
+
+      &:hover > .hand {
+        opacity: 0;
+      }
+
+      &:hover .round2 {
+        opacity: 0;
+      }
+
+      @media (max-width: 992px) {
+        position: absolute;
+        width: auto;
+        height: 88%;
+        margin: 0 6%;
+      }
+
+      .round1,
+      .round2 {
+        position: absolute;
+        border-radius: 50%;
+        width: 24%;
+        aspect-ratio: 1 / 1;
+        transition: all 0.4s ease;
+        transform: translate(-50%, -50%);
+
+        @media (max-width: 992px) {
+          display: none;
+        }
+
+        &.round1 {
+          background: #CCDFCE;
+          bottom: 4%;
+          left: -5%;
+          z-index: -1;
+        }
+
+        &.round2 {
+          background: #F5916F;
+          top: 6%;
+          right: -16%;
+          z-index: 2;
+        }
+      }
+
+      .hand {
+        position: fixed;
+        transform: translate(0%, 0%);
+        right: 0;
+        bottom: 0;
+        //opacity: 0.9;
+        z-index: 7;
+        width: auto;
+        object-fit: contain;
+        height: clamp(120px, 60%, 60%);
+        transition: all 0.4s ease;
+        pointer-events: none;
+
+        @media (max-width: 992px) {
+          display: none;
+        }
+      }
+    }
+
+    .chess-box {
+      position: fixed;
+      left: 22vw;
+      bottom: 4vh;
+      opacity: 0.9;
+      z-index: 1;
+      width: auto;
+      object-fit: contain;
+      max-height: 26vh;
+      transition: all 0.2s ease;
+
+      &:hover {
+        opacity: 0.6;
+      }
+
+      @media (max-width: 992px) {
+        display: none;
+      }
+
+      @media (max-height: 760px) {
+        opacity: 0.2;
+      }
+    }
+  }
+}

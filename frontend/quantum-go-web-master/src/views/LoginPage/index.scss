@@ -1,0 +1,127 @@
+
+// 颜色变量
+$bg-color: #FEF6EC;
+$primary-color: #EB894F;
+$secondary-color: rgba(235, 137, 79, 0.7);
+$text-color: #6E4C41;
+
+// 其他公共样式
+@mixin glass-effect {
+  background: rgba(white, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+}
+
+// 引入您的公共样式
+
+.model {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  background: rgba($bg-color, 0.95);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+
+  .auth-tabs {
+    display: flex;
+    margin-bottom: 32px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba($primary-color, 0.1);
+
+    .tab {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      background: transparent;
+      color: rgba($text-color, 0.7);
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &.active {
+        background: linear-gradient(to right, $primary-color, $secondary-color);
+        color: white;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .auth-form {
+    .input-group {
+      margin-bottom: 24px;
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: $text-color;
+        font-size: 14px;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px 20px;
+        box-sizing: border-box;
+        border: 2px solid rgba($primary-color, 0.2);
+        border-radius: 10px;
+        background: rgba(white, 0.9);
+        transition: all 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-color: $primary-color;
+          box-shadow: 0 4px 12px rgba($primary-color, 0.1);
+        }
+
+        &::placeholder {
+          color: rgba($text-color, 0.4);
+        }
+      }
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(to right, $primary-color, $secondary-color);
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba($secondary-color, 0.2);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 480px) {
+  .model {
+    width: 90%;
+    padding: 24px;
+
+    .auth-form {
+      .input-group input {
+        padding: 10px 16px;
+      }
+
+      .submit-btn {
+        padding: 12px;
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+.bullet-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1000;
+
+  :global(.bullet) {
+    position: absolute;
+    left: 100vw;
+    white-space: nowrap;
+    padding: 8px 20px;
+    border-radius: 20px;
+    color: #6e4c41;
+    font-size: 15px;
+    box-shadow: 2px 2px 8px rgba(#eb894f, 0.1);
+    backdrop-filter: blur(2px);
+    transition: 0.3s all ease;
+    text-overflow: ellipsis;
+
+    &:hover {
+      animation-play-state: paused;
+      opacity: 0.8;
+      transform: scale(1.02);
+    }
+
+    &:global(.animation) {
+      animation: floatLeft 15s linear forwards;
+    }
+
+    &:global(.color-a) {
+      background: rgba(#eb894f, 0.8);
+    }
+
+    &:global(.color-b) {
+      background: #EB894FDD;
+      //background: black;
+    }
+  }
+}
+
+@keyframes floatLeft {
+  0% {
+    left: 100vw;
+  }
+  100% {
+    left: -100vw;
+  }
+}
