@@ -17,6 +17,12 @@
     </div>
     <el-dialog v-model="createRoomVisible" :title="lang.text.index.create_room_title" width="500">
       <el-form :model="form">
+        <el-form-item :label="lang.text.index.game_mode_title" :label-width="'140px'">
+          <el-select v-model="form.gameMode" :placeholder="lang.text.index.game_mode_placeholder">
+            <el-option :label="lang.text.index.game_mode_pvp" :value="'pvp'" />
+            <el-option :label="lang.text.index.game_mode_ai" :value="'ai'" />
+          </el-select>
+        </el-form-item>
         <el-form-item :label="lang.text.index.model_title" :label-width="'140px'">
           <el-select v-model="form.model" :placeholder="lang.text.index.model_placeholder">
             <el-option :label="lang.text.index.model_9" :value="9" />
@@ -66,6 +72,7 @@ onMounted(async () => {
 
 const createRoomVisible = ref(false);
 const form = reactive({
+  gameMode: "pvp",
   model: "",
   countdown: ""
 });
@@ -75,12 +82,12 @@ const createRoom = async () => {
 };
 
 const createRoomSubmit = async () => {
-  const {countdown, model} = form;
-  if (!countdown || !model) {
+  const {gameMode, countdown, model} = form;
+  if (!gameMode || !countdown || !model) {
     ElMessage({ message: lang.value.text.index.create_room_error_empty_options, grouping: true, type: "error" });
     return;
   }
-  const roomId = await store.dispatch("game/createRoom", {countdown, model});
+  const roomId = await store.dispatch("game/createRoom", {gameMode, countdown, model});
   if (roomId === false) {
     ElMessage({ message: lang.value.text.index.create_room_error, grouping: true, type: "error" });
     return;

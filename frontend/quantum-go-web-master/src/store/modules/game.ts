@@ -18,6 +18,7 @@ const state = () => ({
   round: true as boolean,
   camp: "black" as ChessmanType,
   model: 9 as BoardModel,
+  gameMode: "pvp" as string,
   board1: new Map() as Board,
   board2: new Map() as Board,
   records: [] as ChessmanRecords
@@ -34,6 +35,10 @@ const mutations = {
 
   setRound(state: any, round: boolean) {
     state.round = round;
+  },
+
+  setGameMode(state: any, gameMode: string) {
+    state.gameMode = gameMode;
   },
 
   setChess(state: any, chessman1: Chessman) {
@@ -125,11 +130,12 @@ const actions = {
     commit("initBoard");
   },
 
-  async createRoom({ commit, rootState }: any, data: { countdown: number, model: number }): Promise<false | string> {
-    const res = await api.createRoom(rootState.user.id, data.model, data.countdown);
+  async createRoom({ commit, rootState }: any, data: { gameMode: string, countdown: number, model: number }): Promise<false | string> {
+    const res = await api.createRoom(rootState.user.id, data.model, data.countdown, data.gameMode);
     if (!res.success) {
       return false;
     }
+    commit("setGameMode", data.gameMode);
     return res.data.room_id;
   },
 

@@ -22,6 +22,7 @@ pub struct CreateRoom {
     user_id: Uuid,
     model: i32,
     countdown: i32,
+    game_mode: Option<String>, // 设为可选字段，保持向后兼容
 }
 
 #[derive(Deserialize)]
@@ -75,12 +76,21 @@ pub async fn create_room(
     Json(req): Json<CreateRoom>,
 ) -> ApiResult<serde_json::Value> {
     let room_id = Uuid::new_v4();
+    
+    // Set visitor_id based on game mode (default to PVP if not specified)
+    let game_mode = req.game_mode.as_deref().unwrap_or("pvp");
+    let visitor_id = if game_mode == "ai" {
+        Some(Uuid::new_v4()) // Create a virtual AI player ID
+    } else {
+        None
+    };
+    
     let room_info = RoomInfo {
         id: 0,
         room_id,
         owner_id: req.user_id,
-        visitor_id: None,
-        status: "waiting".to_string(),
+        visitor_id,
+        status: if game_mode == "ai" { "playing".to_string() } else { "waiting".to_string() },
         round: "black".to_string(),
         winner: None,
         board: serde_json::Value::Object(serde_json::Map::new()),
@@ -95,7 +105,10 @@ pub async fn create_room(
     match state.db.create_room(&room_info).await {
         Ok(_) => Ok((
             StatusCode::CREATED,
-            Json(serde_json::json!({ "room_id": room_id })),
+            Json(serde_json::json!({ 
+                "room_id": room_id,
+                "game_mode": game_mode 
+            })),
         )),
         Err(err) => Err((
             StatusCode::INTERNAL_SERVER_ERROR,

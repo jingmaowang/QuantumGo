@@ -104,7 +104,7 @@ impl RatingSystem {
                     updated_at: chrono::Utc::now(),
                 };
                 
-                db.create_user_ranking(&default_ranking).await?;
+                db.create_user_ranking(&default_ranking.user_id, default_ranking.model).await?;
                 Ok(default_ranking)
             }
         }
