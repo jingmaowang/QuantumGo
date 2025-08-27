@@ -14,7 +14,7 @@ pub struct Room {
     pub user2: Option<WsSender>,
 }
 
-#[derive(Clone, Deserialize, Serialize, FromRow)]
+#[derive(Clone, Deserialize, Serialize, FromRow, Debug)]
 pub struct RoomInfo {
     #[serde(skip_serializing)]
     pub id: i32,
@@ -31,6 +31,7 @@ pub struct RoomInfo {
     pub white_lost: i32,
     pub model: i32,
     pub chessman_records: serde_json::Value,
+    pub phase: Option<String>, // 量子阶段字段，存储为字符串
 }
 
 #[derive(Clone, Deserialize, Serialize, FromRow)]
@@ -83,7 +84,7 @@ pub struct GameResult {
     pub model: i32,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Chessman {
     pub position: String,
     #[serde(rename(serialize = "type", deserialize = "type"))]

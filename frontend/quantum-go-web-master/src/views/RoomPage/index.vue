@@ -1,6 +1,6 @@
 <template>
   <div class="main">
-    <div v-if="game.status === 'playing'" class="operation">
+    <div v-if="(game.status === 'playing' || game.gameMode === 'ai') && (wsStatus || game.gameMode === 'ai')" class="operation">
       <div class="item btn" @click="passChess">{{ lang.text.room.pass }}</div>
       <div class="item btn" @click="backChess">{{ lang.text.room.takeback }}</div>
       <!--      <div class="btn">{{ lang.text.room.draw }}</div>-->
@@ -25,10 +25,10 @@
     <div class="body">
       <div class="battle">
         <div class="board-box">
-          <board-component class="board" info="board1" :can="wsStatus" :callback="putChess" />
+          <board-component class="board" info="board1" :can="wsStatus || game.gameMode === 'ai'" :callback="putChess" />
         </div>
         <div class="board-box">
-          <board-component class="board" info="board2" :can="wsStatus" :callback="putChess" />
+          <board-component class="board" info="board2" :can="wsStatus || game.gameMode === 'ai'" :callback="putChess" />
         </div>
       </div>
       <div class="input-box">
@@ -94,8 +94,9 @@ onMounted(async () => {
   const data = res.data;
   if (data.status === "finish") {
     redirectToHomeWithMessage(lang.value.text.join.room_finished);
-  } else if (data.status === "playing") {
-    if (user.value.id !== data.owner_id && user.value.id !== data.visitor_id) {
+  } else if (data.status === "playing" || data.gameMode === "ai") {
+    // AI对战模式或者普通对战模式
+    if (data.gameMode !== "ai" && user.value.id !== data.owner_id && user.value.id !== data.visitor_id) {
       redirectToHomeWithMessage(lang.value.text.join.room_playing);
     }
   }
@@ -107,31 +108,87 @@ onMounted(() => {
 
 const initGame = async (data: Record<string, any>) => {
   await store.dispatch("game/setGameInfo", data);
-  console.log(data);
+  console.log("Initializing game with data:", data);
+  
+  // 判断是否是AI对战房间：visitor_id存在且status为playing
+  // 或者从URL参数中判断是否是AI模式
+  const isAIGame = data.visitor_id !== null && data.status === "playing";
+  console.log("Is AI game:", isAIGame, "visitor_id:", data.visitor_id, "status:", data.status);
+  
+  // 如果从URL参数判断是AI模式，强制设置为AI模式
+  const urlParams = new URLSearchParams(window.location.search);
+  const gameModeFromUrl = urlParams.get('gameMode');
+  if (gameModeFromUrl === 'ai') {
+    console.log("AI mode detected from URL parameter");
+    store.commit("game/setGameMode", "ai");
+    store.commit("game/setStatus", "playing");
+    store.commit("game/setRound", true);
+    wsStatus.value = true;
+    console.log("AI mode initialized from URL, wsStatus set to:", wsStatus.value);
+    return;
+  }
+  
+  // 检查房间是否是从AI模式创建的
+  // 如果房间刚刚创建且没有访客，可能是AI房间
+  if (data.visitor_id === null && data.status === "waiting" && data.moves === 0) {
+    // 检查是否是从AI模式创建的
+    const roomCreationInfo = sessionStorage.getItem(`room_${data.room_id}_mode`);
+    if (roomCreationInfo === 'ai') {
+      console.log("AI mode detected from session storage");
+      store.commit("game/setGameMode", "ai");
+      store.commit("game/setStatus", "playing");
+      store.commit("game/setRound", true);
+      wsStatus.value = true;
+      console.log("AI mode initialized from session storage, wsStatus set to:", wsStatus.value);
+      return;
+    }
+  }
+  
+  if (isAIGame) {
+    console.log("AI battle room detected, setting game status to playing");
+    // 强制设置游戏模式为AI
+    store.commit("game/setGameMode", "ai");
+    // 强制设置游戏状态为playing
+    store.commit("game/setStatus", "playing");
+    // 设置玩家为黑方，AI为白方
+    store.commit("game/setRound", true); // 黑方先手
+    // 允许下棋
+    wsStatus.value = true;
+    console.log("AI mode initialized, wsStatus set to:", wsStatus.value, "game mode:", store.state.game.gameMode);
+    return;
+  }
+  
+  // 普通PVP模式，建立WebSocket连接
+  console.log("PVP mode detected, establishing WebSocket connection");
   ws = new WebSocket(`${Config.wsUrl}/${user.value.id}/${roomId}`);
-  // ws = io(`ws://${window.location.hostname}/ws/${user.value.id}/${roomId}`);
-  console.log(ws);
+  console.log("WebSocket created:", ws);
+  
   ws.onopen = () => {
     console.log("Connected to WebSocket server");
     wsStatus.value = true;
   };
+  
   ws.onclose = () => {
     wsStatus.value = false;
     ElMessage.warning(lang.value.text.room.ws_disconnected);
     console.log("WebSocket connection closed");
   };
+  
   ws.onerror = (error: any) => {
+    wsStatus.value = false;
     ElMessage.warning(lang.value.text.room.ws_disconnected);
     console.error("WebSocket error:", error);
   };
+  
   ws.onmessage = (event: any) => {
     const message = event.data;
-    console.log("Received message:", message);
+    console.log("Received WebSocket message:", message);
     const data = JSON.parse(message);
+    
     if (data.type === "updateChess") {
       game.value.moves++;
       const chessman = data.data.putChess as Chessman;
-      console.log(chessman);
+      console.log("Processing chess move:", chessman);
       if (chessman.position !== "0,0") {
         store.dispatch("game/putChess", chessman);
       }
@@ -151,6 +208,8 @@ const initGame = async (data: Record<string, any>) => {
           clearInterval(timer);
         }
       }, 100);
+      
+      // 检查是否还有可下棋的位置
       let status = false;
       for (let i = 0; i < 81; i++) {
         const x = Math.floor((i - 1) / 9) + 1;
@@ -161,6 +220,7 @@ const initGame = async (data: Record<string, any>) => {
           break;
         }
       }
+      
       if (!status) {
         let winner: string;
         if (game.value.blackPoints - game.value.whiteLost - 7 > 0) {
@@ -210,12 +270,63 @@ const initGame = async (data: Record<string, any>) => {
 const putChess = async (position: string) => {
   clearInterval(timer);
   progress.value = 0;
-  game.value.moves++;
+  
+  console.log("putChess called with position:", position, "gameMode:", game.value.gameMode, "round:", game.value.round, "status:", game.value.status);
+  
+  // 如果是AI对战模式，直接处理下棋逻辑
+  if (game.value.gameMode === "ai") {
+    console.log("AI mode: processing chess move at position:", position);
+    
+    // 检查是否是玩家的回合
+    if (!game.value.round) {
+      ElMessage.warning({ message: lang.value.text.room.not_round, grouping: true });
+      return;
+    }
+    
+    // 检查位置是否已经有棋子
+    if (game.value.board1.has(position) || game.value.board2.has(position)) {
+      console.log("AI mode: position already occupied");
+      return;
+    }
+    
+    console.log("AI mode: attempting to place chess at", position, "camp:", game.value.camp);
+    
+    // 直接更新游戏状态
+    const success = await store.dispatch("game/putChess", { position, type: game.value.camp });
+    if (success) {
+      console.log("AI mode: chess placed successfully");
+      // AI的响应会在store的putChess方法中处理
+    } else {
+      console.log("AI mode: failed to place chess");
+      // 不要显示错误消息，因为这可能是正常的验证失败
+      // ElMessage.error("Failed to place chess");
+    }
+    return;
+  }
+  
+  // 普通PVP模式，通过WebSocket处理
   if (!wsStatus.value) {
     ElMessage.warning({ message: lang.value.text.room.ws_connection_error, grouping: true });
     return;
   }
-  const chessman: Chessman = game.value.board1.get(position);
+  
+  // 检查位置是否已经有棋子
+  if (game.value.board1.has(position) || game.value.board2.has(position)) {
+    console.log("PVP mode: position already occupied");
+    return;
+  }
+  
+  // 创建棋子对象
+  const chessman: Chessman = {
+    position: position,
+    type: game.value.camp,
+    brother: position
+  };
+  
+  // 先添加到本地棋盘
+  store.dispatch("game/putChess", { position, type: game.value.camp });
+  
+  // 通过WebSocket发送
   ws.send(JSON.stringify({
     type: "updateChess",
     data: {
@@ -231,6 +342,23 @@ const putChess = async (position: string) => {
 const isWaitingBack = ref(false);
 let loadingModel: any;
 const backChess = async () => {
+  // 如果是AI对战模式，直接处理
+  if (game.value.gameMode === "ai") {
+    if (!game.value.round) {
+      ElMessage.warning({ message: lang.value.text.room.not_round, grouping: true });
+      return;
+    }
+    if (game.value.records.length < 4) {
+      ElMessage.warning({ message: lang.value.text.room.back_apply_early, grouping: true });
+      return;
+    }
+    // AI模式下直接悔棋
+    await store.dispatch("game/backChess");
+    ElMessage.success(lang.value.text.room.back_apply_success);
+    return;
+  }
+  
+  // 普通PVP模式
   if (!wsStatus.value) {
     ElMessage.warning({ message: lang.value.text.room.ws_connection_error, grouping: true });
     return;
@@ -257,6 +385,25 @@ const backApplyOperation = async (operation: boolean) => {
 };
 
 const passChess = () => {
+  // 如果是AI对战模式，直接处理
+  if (game.value.gameMode === "ai") {
+    if (!game.value.round) {
+      ElMessage.warning({ message: lang.value.text.room.not_round, grouping: true });
+      return;
+    }
+    if (game.value.board1.size <= 2) {
+      ElMessage.warning({ message: lang.value.text.room.pass_early, grouping: true });
+      return;
+    }
+    clearInterval(timer);
+    progress.value = 0;
+    console.log("AI mode: passChess");
+    store.commit("game/setRound", false);
+    game.value.moves++;
+    return;
+  }
+  
+  // 普通PVP模式
   if (!wsStatus.value) {
     ElMessage.warning({ message: lang.value.text.room.ws_connection_error, grouping: true });
     return;
@@ -287,6 +434,15 @@ const passChess = () => {
 };
 
 const resign = () => {
+  // 如果是AI对战模式，直接处理
+  if (game.value.gameMode === "ai") {
+    store.commit("game/setRound", false);
+    store.commit("game/setStatus", "finished");
+    ElMessageBox.alert(lang.value.text.room.loser, "Finish", { confirmButtonText: "OK" });
+    return;
+  }
+  
+  // 普通PVP模式
   if (!wsStatus.value) {
     ElMessage.warning({ message: lang.value.text.room.ws_connection_error, grouping: true });
     return;

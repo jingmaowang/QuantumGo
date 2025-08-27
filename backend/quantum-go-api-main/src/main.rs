@@ -16,6 +16,7 @@ use tower_http::{
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+mod ai;
 mod api;
 mod db;
 mod entity;
@@ -63,6 +64,8 @@ async fn main() {
         .route("/userRegister", post(api::register))
         .route("/getUserInfo", post(api::login))
         .route("/getLeaderboard", post(api::get_leaderboard))
+        .route("/aiMove", post(api::ai_move))
+        .route("/updatePlayerMove", post(api::update_player_move))
         .route("/ws/{user_id}/{room_id}", any(ws::ws_handler))
         .with_state(state)
         // logging so we can see what's going on

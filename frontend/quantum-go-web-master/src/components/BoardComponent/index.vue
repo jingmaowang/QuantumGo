@@ -143,20 +143,36 @@ const putChess = async (index: number) => {
     ElMessage.warning({ message: lang.value.text.board.ws_connection_error, grouping: true });
     return;
   }
+  
+  // 检查游戏状态和回合
   if (!((game.value.round || !game.value.roomId) && game.value.status !== "finished")) {
+    console.log("Cannot place chess: round=", game.value.round, "status=", game.value.status, "gameMode=", game.value.gameMode);
+    // 在AI模式下，提供更具体的错误信息
+    if (game.value.gameMode === "ai") {
+      if (!game.value.round) {
+        ElMessage.warning({ message: "It's not your turn now", grouping: true });
+      } else if (game.value.status === "finished") {
+        ElMessage.warning({ message: "Game is finished", grouping: true });
+      } else {
+        ElMessage.warning({ message: "Cannot place chess in current state", grouping: true });
+      }
+    } else {
+      ElMessage.warning({ message: lang.value.text.board.put_chess_error, grouping: true });
+    }
     return;
   }
+  
   let position = getPositionStr(index);
   if (game.value.board1.has(position) || game.value.board2.has(position)) {
+    console.log("Position already occupied:", position);
+    ElMessage.warning({ message: lang.value.text.board.put_chess_error, grouping: true });
     return;
   }
-  const type = game.value.camp;
-  const result = await store.dispatch("game/putChess", { position, type });
-  if (!result) {
-    ElMessage({ message: lang.value.text.board.put_chess_error, grouping: true, type: "warning" });
-    return;
-  }
-  props.callback(position, props.info);
+  
+  console.log("Placing chess at position:", position, "game mode:", game.value.gameMode);
+  
+  // 调用父组件的回调函数，让父组件处理下棋逻辑
+  props.callback(position);
 };
 </script>
 

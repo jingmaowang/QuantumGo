@@ -57,12 +57,28 @@ impl Database {
                 black_lost INTEGER NOT NULL DEFAULT 0,
                 white_lost INTEGER NOT NULL DEFAULT 0,
                 model INTEGER NOT NULL DEFAULT 9,
-                chessman_records JSONB NOT NULL DEFAULT '[]'::jsonb
+                chessman_records JSONB NOT NULL DEFAULT '[]'::jsonb,
+                phase VARCHAR(50) DEFAULT 'BlackQuantum'
             );
             "#,
         )
         .execute(pool)
         .await?;
+
+        // 检查并添加phase字段（如果不存在）
+        let result = sqlx::query(
+            "SELECT column_name FROM information_schema.columns WHERE table_name = 'room_infos' AND column_name = 'phase'"
+        )
+        .fetch_optional(pool)
+        .await?;
+
+        if result.is_none() {
+            println!("Adding phase column to room_infos table...");
+            sqlx::query("ALTER TABLE room_infos ADD COLUMN phase VARCHAR(50) DEFAULT 'BlackQuantum'")
+                .execute(pool)
+                .await?;
+            println!("Phase column added successfully");
+        }
 
         // Create user_rankings table
         sqlx::query(
@@ -217,8 +233,9 @@ impl Database {
                 black_lost = $8,
                 white_lost = $9,
                 model = $10,
-                chessman_records = $11
-            WHERE id = $12 RETURNING *
+                chessman_records = $11,
+                phase = $12
+            WHERE id = $13 RETURNING *
             "#,
         )
         .bind(room_info.visitor_id)       // $1
@@ -232,7 +249,8 @@ impl Database {
         .bind(room_info.white_lost)       // $9
         .bind(room_info.model)            // $10
         .bind(&room_info.chessman_records)// $11
-        .bind(room_info.id)               // $12
+        .bind(&room_info.phase)           // $12 <- 新增 phase 字段
+        .bind(room_info.id)               // $13
         .fetch_one(&self.pool)
         .await
     }

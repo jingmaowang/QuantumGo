@@ -50,6 +50,22 @@ class Api {
     const data = { model, limit };
     return this.request("/getLeaderboard", data);
   }
+
+  public async aiMove(roomId: string, userId: string, gameMode: string = "ai", boardState?: any): Promise<Response> {
+    const data = { 
+      room_id: roomId, 
+      user_id: userId, 
+      game_mode: gameMode,
+      board_state: boardState // 传递当前棋盘状态
+    };
+    return this.request("/aiMove", data);
+  }
+
+  // 更新玩家移动状态接口
+  public async updatePlayerMove(roomId: string, userId: string, position: string, gameMode: string, board?: any): Promise<Response> {
+    const data = { room_id: roomId, user_id: userId, position: position, game_mode: gameMode, board: board };
+    return this.request("/updatePlayerMove", data);
+  }
 }
 
 const api = new Api(Config.apiUrl);

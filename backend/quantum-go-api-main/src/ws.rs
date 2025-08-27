@@ -157,7 +157,7 @@ async fn update_room_visitor(
             room_id: room_info.room_id,
             owner_id: room_info.owner_id,
             visitor_id: Some(user_id),
-            status: "playing".to_string(),
+            status: room_info.status.clone(),
             round: room_info.round.clone(),
             winner: room_info.winner.clone(),
             board: room_info.board.clone(),
@@ -165,8 +165,9 @@ async fn update_room_visitor(
             moves: room_info.moves,
             black_lost: room_info.black_lost,
             white_lost: room_info.white_lost,
-            model: room_info.model.clone(),
+            model: room_info.model,
             chessman_records: room_info.chessman_records.clone(),
+            phase: room_info.phase.clone(), // 新增：复制phase字段
         })
         .await
 }
@@ -285,6 +286,7 @@ async fn update_game_state(
             white_lost: data.white_lost,
             model: room_info.model.clone(),
             chessman_records: data.chessman_records.clone(),
+            phase: room_info.phase.clone(), // 新增：复制phase字段
         })
         .await
 }
@@ -332,6 +334,7 @@ async fn update_winner(
             white_lost: room_info.white_lost,
             model: room_info.model.clone(),
             chessman_records: room_info.chessman_records.clone(),
+            phase: room_info.phase.clone(), // 新增：复制phase字段
         })
         .await?;
 
