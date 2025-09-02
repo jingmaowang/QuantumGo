@@ -1,0 +1,167 @@
+/* 量子围棋游戏集成插件样式 */
+
+/* 浮动按钮样式 */
+.quantum-go-floating {
+    position: fixed;
+    z-index: 9999;
+    transition: all 0.3s ease;
+}
+
+.quantum-go-floating a {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-decoration: none;
+    padding: 12px 16px;
+    border-radius: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.quantum-go-floating a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    color: white;
+    text-decoration: none;
+}
+
+.quantum-go-icon {
+    font-size: 18px;
+    margin-right: 8px;
+}
+
+.quantum-go-text {
+    white-space: nowrap;
+}
+
+/* 位置样式 */
+.quantum-go-bottom-right {
+    bottom: 20px;
+    right: 20px;
+}
+
+.quantum-go-bottom-left {
+    bottom: 20px;
+    left: 20px;
+}
+
+.quantum-go-top-right {
+    top: 20px;
+    right: 20px;
+}
+
+.quantum-go-top-left {
+    top: 20px;
+    left: 20px;
+}
+
+/* 游戏链接样式 */
+.quantum-go-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white !important;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+.quantum-go-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    color: white !important;
+    text-decoration: none;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .quantum-go-floating a {
+        padding: 10px 12px;
+        font-size: 12px;
+        min-width: 100px;
+    }
+    
+    .quantum-go-icon {
+        font-size: 16px;
+        margin-right: 6px;
+    }
+    
+    .quantum-go-bottom-right,
+    .quantum-go-bottom-left {
+        bottom: 15px;
+    }
+    
+    .quantum-go-bottom-right {
+        right: 15px;
+    }
+    
+    .quantum-go-bottom-left {
+        left: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .quantum-go-floating a {
+        padding: 8px 10px;
+        font-size: 11px;
+        min-width: 80px;
+    }
+    
+    .quantum-go-text {
+        display: none;
+    }
+    
+    .quantum-go-icon {
+        margin-right: 0;
+        font-size: 20px;
+    }
+}
+
+/* 动画效果 */
+@keyframes quantum-go-pulse {
+    0% {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    50% {
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+}
+
+.quantum-go-floating a:hover {
+    animation: quantum-go-pulse 2s infinite;
+}
+
+/* 加载状态 */
+.quantum-go-loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.quantum-go-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #ffffff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: quantum-go-spin 1s linear infinite;
+}
+
+@keyframes quantum-go-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
