@@ -7,9 +7,17 @@
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "backend/quantum-go-api-main/Cargo.toml",
+      "use": "@vercel/rust"
     }
   ],
   "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/backend/quantum-go-api-main/src/main.rs"
+    },
     {
       "src": "/(.*)",
       "dest": "/frontend/quantum-go-web-master/dist/$1"
@@ -17,6 +25,7 @@
   ],
   "env": {
     "VITE_SUPABASE_URL": "@vite_supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key"
+    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
+    "DATABASE_URL": "@database_url"
   }
 }

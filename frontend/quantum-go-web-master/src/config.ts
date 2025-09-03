@@ -1,13 +1,12 @@
-// const Config = {
-//   apiUrl: `${window.location.protocol}//${window.location.host}/api`,
-//   wsUrl: `ws://${window.location.host}/ws`
-// };
-
-// 使用 localhost 进行本地开发
-const host = "localhost";
+// 根据环境自动配置 API 端点
+const isProduction = window.location.hostname !== 'localhost';
 const Config = {
-  apiUrl: `http://${host}:3000`,
-  wsUrl: `ws://${host}:3000/ws`
+  apiUrl: isProduction 
+    ? `${window.location.protocol}//${window.location.host}/api`
+    : `http://localhost:3000`,
+  wsUrl: isProduction 
+    ? `wss://${window.location.host}/ws`
+    : `ws://localhost:3000/ws`
 };
 
 export default Config;
