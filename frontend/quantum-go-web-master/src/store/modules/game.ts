@@ -125,10 +125,20 @@ const actions = {
       // 设置游戏模式为AI
       state.gameMode = "ai";
       console.log("AI game mode detected and set in store");
-    } else if (status === "waiting" && visitor_id) {
-      // 普通PVP房间，有访客时设置为playing
+    } else if (status === "waiting") {
+      // 普通PVP房间，当有人加入时自动开始游戏
       state.status = "playing";
       state.gameMode = "pvp";
+      console.log("PvP mode: auto-starting game from waiting status");
+      
+      // 更新数据库中的房间状态
+      try {
+        const { updateRoomInfo } = await import("../../utils/supabase-room");
+        await updateRoomInfo(room_id, { status: "playing" });
+        console.log("PvP mode: room status updated to playing in database");
+      } catch (error) {
+        console.error("PvP mode: failed to update room status:", error);
+      }
     } else {
       // 默认PVP模式
       state.gameMode = "pvp";
@@ -143,8 +153,16 @@ const actions = {
       console.log("AI mode: player is black, round set to true");
     } else {
       state.camp = isOwner ? "black" : "white";
-      state.round = isOwner ? round === "black" : round === "white";
-      console.log("PvP mode: isOwner=", isOwner, "round=", round, "camp=", state.camp, "state.round=", state.round);
+      
+      // 在 PvP 模式下，如果游戏刚开始（moves === 0），让房主先下棋
+      if (moves === 0) {
+        state.round = isOwner; // 房主先下棋
+        console.log("PvP mode: game starting, owner goes first, isOwner=", isOwner, "state.round=", state.round);
+      } else {
+        // 游戏进行中，根据数据库中的 round 值设置
+        state.round = isOwner ? round === "black" : round === "white";
+        console.log("PvP mode: game in progress, isOwner=", isOwner, "round=", round, "camp=", state.camp, "state.round=", state.round);
+      }
     }
     const count = boardMap.size;
     if (count === 0) {
