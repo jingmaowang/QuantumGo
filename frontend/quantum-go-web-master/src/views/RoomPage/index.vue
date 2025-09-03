@@ -110,9 +110,9 @@ const initGame = async (data: Record<string, any>) => {
   await store.dispatch("game/setGameInfo", data);
   console.log("Initializing game with data:", data);
   
-  // 判断是否是AI对战房间：visitor_id为"ai_player"且status为playing
+  // 判断是否是AI对战房间：visitor_id为特殊UUID且status为playing
   // 或者从URL参数中判断是否是AI模式
-  const isAIGame = data.visitor_id === "ai_player" && data.status === "playing";
+  const isAIGame = data.visitor_id === "00000000-0000-0000-0000-000000000000" && data.status === "playing";
   console.log("Is AI game:", isAIGame, "visitor_id:", data.visitor_id, "status:", data.status);
   
   // 如果从URL参数判断是AI模式，强制设置为AI模式
@@ -158,10 +158,9 @@ const initGame = async (data: Record<string, any>) => {
     return;
   }
   
-  // 普通PVP模式，建立WebSocket连接
-  console.log("PVP mode detected, establishing WebSocket connection");
-  ws = new WebSocket(`${Config.wsUrl}/${user.value.id}/${roomId}`);
-  console.log("WebSocket created:", ws);
+  // 普通PVP模式，使用 Supabase 实时功能
+  console.log("PVP mode detected, using Supabase real-time");
+  wsStatus.value = true; // 直接设置为可用，因为使用 Supabase
   
   // 设置 Supabase 实时监听房间变化
   const supabase = (window as any).supabase || null;

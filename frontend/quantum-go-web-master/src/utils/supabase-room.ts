@@ -25,7 +25,7 @@ export async function createRoom(
         {
           room_id: roomId,
           owner_id: ownerId,
-          visitor_id: gameMode === "ai" ? "ai_player" : null,
+          visitor_id: gameMode === "ai" ? "00000000-0000-0000-0000-000000000000" : null,
           status: gameMode === "ai" ? "playing" : "waiting",
           round: "black",
           winner: null,
