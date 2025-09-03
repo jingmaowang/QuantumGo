@@ -1,6 +1,7 @@
 import axios from "axios";
 import Config from "@/config";
 import CryptoJS from "crypto-js";
+import { registerUser, loginUser, createRoom, getLeaderboard } from "./supabase";
 import { Response } from "@/utils/types";
 
 class Api {
@@ -34,21 +35,21 @@ class Api {
   }
 
   public async getUserInfo(user_name: string, row_password: string): Promise<Response> {
-    const user_password = CryptoJS.MD5(row_password).toString(CryptoJS.enc.Hex);
-    const data = { username: user_name, password: user_password };
-    return this.request("/getUserInfo", data);
+    // 使用 Supabase 登录
+    const result = await loginUser(user_name, row_password);
+    return result;
   }
 
   public async userRegister(user_name: string, row_password: string): Promise<Response> {
-    const user_password = CryptoJS.MD5(row_password).toString(CryptoJS.enc.Hex);
-    console.log(user_password, row_password);
-    const data = { username: user_name, password: user_password };
-    return this.request("/userRegister", data);
+    // 使用 Supabase 注册
+    const result = await registerUser(user_name, row_password);
+    return result;
   }
 
   public async getLeaderboard(model: number, limit: number = 50): Promise<Response> {
-    const data = { model, limit };
-    return this.request("/getLeaderboard", data);
+    // 使用 Supabase 获取排行榜
+    const result = await getLeaderboard(model, limit);
+    return result;
   }
 
   public async aiMove(roomId: string, userId: string, gameMode: string = "ai", boardState?: any): Promise<Response> {

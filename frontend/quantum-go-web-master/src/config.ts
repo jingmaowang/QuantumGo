@@ -1,4 +1,4 @@
-// 根据环境自动配置 API 端点
+// 使用 Supabase 作为后端
 const isProduction = window.location.hostname !== 'localhost';
 const Config = {
   apiUrl: isProduction 
@@ -6,7 +6,10 @@ const Config = {
     : `http://localhost:3000`,
   wsUrl: isProduction 
     ? `wss://${window.location.host}/ws`
-    : `ws://localhost:3000/ws`
+    : `ws://localhost:3000/ws`,
+  // Supabase 配置
+  supabaseUrl: import.meta.env.VITE_SUPABASE_URL || '',
+  supabaseKey: import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 };
 
 export default Config;
