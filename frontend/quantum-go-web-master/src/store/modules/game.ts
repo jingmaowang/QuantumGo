@@ -234,7 +234,19 @@ const actions = {
   },
 
   async putChess({ commit, state, rootState }: any, payload: { position: string, type: ChessmanType }): Promise<boolean> {
-    if (state.status !== "playing") {
+    // 在 PvP 模式下，如果状态是 waiting，房主开始下棋时自动开始游戏
+    if (state.status === "waiting" && state.gameMode === "pvp") {
+      console.log("PvP mode: starting game from waiting status");
+      state.status = "playing";
+      // 更新数据库中的房间状态
+      try {
+        const { updateRoomInfo } = await import("../../utils/supabase-room");
+        await updateRoomInfo(state.roomId, { status: "playing" });
+        console.log("PvP mode: room status updated to playing");
+      } catch (error) {
+        console.error("PvP mode: failed to update room status:", error);
+      }
+    } else if (state.status !== "playing") {
       return false;
     }
     const chessman: Chessman = { position: payload.position, type: payload.type, brother: payload.position };
@@ -475,6 +487,28 @@ const actions = {
           commit("setRound", true);
         }
       }, 1000); // 1秒后AI下棋
+    }
+
+    // 在 PvP 模式下，更新数据库中的游戏状态
+    if (state.gameMode === "pvp" && state.status === "playing") {
+      try {
+        const { updateRoomInfo } = await import("../../utils/supabase-room");
+        const boardData = {
+          board1: Object.fromEntries(state.board1),
+          board2: Object.fromEntries(state.board2)
+        };
+        await updateRoomInfo(state.roomId, {
+          board: boardData,
+          moves: state.moves,
+          round: state.round ? "black" : "white",
+          black_lost: state.blackLost,
+          white_lost: state.whiteLost,
+          chessman_records: state.records
+        });
+        console.log("PvP mode: game state updated in database");
+      } catch (error) {
+        console.error("PvP mode: failed to update game state:", error);
+      }
     }
 
     return true;
