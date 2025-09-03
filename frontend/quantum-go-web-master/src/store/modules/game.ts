@@ -73,6 +73,19 @@ const mutations = {
 };
 
 const actions = {
+  async checkIfOwner({ roomId, userId }: { roomId: string, userId: string }): Promise<boolean> {
+    try {
+      const res = await api.getGameInfo(roomId);
+      if (res.success && res.data) {
+        return res.data.owner_id === userId;
+      }
+      return false;
+    } catch (error) {
+      console.error("Error checking if user is owner:", error);
+      return false;
+    }
+  },
+
   async setGameInfo({ commit, rootState, state }: any, data: Record<string, any>) {
     const { room_id, status, owner_id, round, board, moves, white_lost, black_lost, countdown, model, chessman_records, visitor_id } = data;
     
@@ -129,6 +142,12 @@ const actions = {
       // 普通PVP房间，有访客时设置为playing
       state.status = "playing";
       state.gameMode = "pvp";
+      console.log("PvP mode: game started with visitor");
+    } else if (status === "playing" && visitor_id && state.status === "waiting") {
+      // 状态从waiting变为playing，说明第二个玩家加入了
+      state.status = "playing";
+      state.gameMode = "pvp";
+      console.log("PvP mode: game started, second player joined");
     } else {
       // 默认PVP模式
       state.gameMode = "pvp";
@@ -232,7 +251,33 @@ const actions = {
     });
   },
 
-  async putChess({ commit, state, rootState }: any, payload: { position: string, type: ChessmanType }): Promise<boolean> {
+  async putChess({ commit, state, rootState, dispatch }: any, payload: { position: string, type: ChessmanType }): Promise<boolean> {
+    // 检查是否是第二个玩家加入并开始游戏
+    if (state.status === "waiting" && state.gameMode === "pvp") {
+      const isOwner = state.roomId && await dispatch("checkIfOwner", { roomId: state.roomId, userId: rootState.user.id });
+      if (!isOwner) {
+        // 第二个玩家加入，自动开始游戏
+        console.log("Second player joining, starting game automatically");
+        state.status = "playing";
+        
+        // 更新数据库中的 visitor_id 和状态
+        try {
+          const { updateRoomInfo } = await import("../../utils/supabase-room");
+          await updateRoomInfo(state.roomId, {
+            visitor_id: rootState.user.id,
+            status: "playing"
+          });
+          console.log("PvP mode: visitor_id set and game started");
+        } catch (error) {
+          console.error("PvP mode: failed to update visitor_id:", error);
+        }
+      } else {
+        // 房主在 waiting 状态下不能下棋
+        console.log("Host cannot move in waiting state");
+        return false;
+      }
+    }
+    
     if (state.status !== "playing") {
       return false;
     }
