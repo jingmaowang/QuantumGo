@@ -1,6 +1,7 @@
 // 使用 Supabase 作为后端
 const isProduction = window.location.hostname !== 'localhost';
 const Config = {
+  // 注意：现在大部分功能使用 Supabase，只有游戏相关功能需要后端 API
   apiUrl: isProduction 
     ? `${window.location.protocol}//${window.location.host}/api`
     : `http://localhost:3000`,
