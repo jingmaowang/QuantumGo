@@ -83,6 +83,7 @@ const createRoom = async () => {
 
 const createRoomSubmit = async () => {
   const {gameMode, countdown, model} = form;
+  console.log('Creating room with form data:', { gameMode, countdown, model });
   if (!gameMode || !countdown || !model) {
     ElMessage({ message: lang.value.text.index.create_room_error_empty_options, grouping: true, type: "error" });
     return;

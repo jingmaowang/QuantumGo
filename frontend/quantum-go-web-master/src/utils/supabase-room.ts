@@ -9,7 +9,7 @@ export async function createRoom(
   gameMode: string = "pvp"
 ) {
   try {
-    console.log('Creating room with Supabase...')
+    console.log('Creating room with Supabase...', { ownerId, model, countdown, gameMode })
     
     const roomId = crypto.randomUUID()
     const initialBoard = {
