@@ -19,6 +19,11 @@
       </div>
 
       <button class="submit-btn" type="submit">{{ isLogin ? lang.text.login.btn_login : lang.text.login.btn_register }}</button>
+      
+      <!-- 开发测试按钮 -->
+      <button type="button" class="test-btn" @click="testConnection" style="margin-top: 10px; background: #409eff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+        测试 Supabase 连接
+      </button>
     </form>
   </div>
 </template>
@@ -28,6 +33,7 @@ import { ref, reactive, computed, onMounted, watch } from "vue";
 import { useStore } from "vuex";
 import { ElMessage } from "element-plus";
 import { useRouter } from "vue-router";
+import { testSupabaseConnection, testUsersTable } from "@/utils/supabase-connection-test";
 
 const router = useRouter();
 const store = useStore();
@@ -78,6 +84,31 @@ const handleSubmit = async () => {
       ElMessage.success({ message: lang.value.text.login.login_success + res.data.user_name, grouping: true });
       await router.push('/');
     }
+  }
+};
+
+// 测试 Supabase 连接
+const testConnection = async () => {
+  try {
+    ElMessage.info({ message: "正在测试 Supabase 连接...", grouping: true });
+    
+    // 测试基本连接
+    const connectionResult = await testSupabaseConnection();
+    if (!connectionResult.success) {
+      ElMessage.error({ message: `连接失败: ${connectionResult.error}`, grouping: true });
+      return;
+    }
+    
+    // 测试用户表
+    const tableResult = await testUsersTable();
+    if (!tableResult.success) {
+      ElMessage.error({ message: `用户表访问失败: ${tableResult.error}`, grouping: true });
+      return;
+    }
+    
+    ElMessage.success({ message: "✅ Supabase 连接测试成功！", grouping: true });
+  } catch (error: any) {
+    ElMessage.error({ message: `测试失败: ${error.message}`, grouping: true });
   }
 };
 </script>
