@@ -263,18 +263,10 @@ const actions = {
   },
 
   async putChess({ commit, state, rootState }: any, payload: { position: string, type: ChessmanType }): Promise<boolean> {
-    // 在 PvP 模式下，如果状态是 waiting，房主开始下棋时自动开始游戏
+    // 在 PvP 模式下，如果状态是 waiting，不允许下棋
     if (state.status === "waiting" && state.gameMode === "pvp") {
-      console.log("PvP mode: starting game from waiting status");
-      state.status = "playing";
-      // 更新数据库中的房间状态
-      try {
-        const { updateRoomInfo } = await import("../../utils/supabase-room");
-        await updateRoomInfo(state.roomId, { status: "playing" });
-        console.log("PvP mode: room status updated to playing");
-      } catch (error) {
-        console.error("PvP mode: failed to update room status:", error);
-      }
+      console.log("PvP mode: cannot place chess, waiting for second player to join");
+      return false;
     } else if (state.status !== "playing") {
       return false;
     }
@@ -306,9 +298,12 @@ const actions = {
       blackChess2.type = "white";
       whiteChess2.type = "black";
     }
-    // 在AI模式下，回合管理由AI响应决定，不在玩家落子时立即切换
-    if (state.gameMode !== "ai") {
+    // 在量子围棋中，每个玩家需要下两个棋子（黑子和白子）才能完成一轮
+    // 只有当 subStatus 变为 "common" 时，才切换回合
+    console.log("PvP mode: after move, subStatus=", state.subStatus, "current round=", state.round);
+    if (state.gameMode !== "ai" && state.subStatus === "common") {
       commit("setRound", !state.round);
+      console.log("PvP mode: round switched, new round=", !state.round);
     }
     const capturedChess1 = getCapturedChess(state.board1, chessman.type, state.model);
     const capturedChess2_row = getCapturedChess(state.board2, chessman.type, state.model);

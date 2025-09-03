@@ -151,6 +151,12 @@ const putChess = async (index: number) => {
     return;
   }
   
+  if (game.value.status === "waiting" && game.value.gameMode === "pvp") {
+    console.log("Cannot place chess: waiting for second player to join");
+    ElMessage.warning({ message: "Waiting for second player to join", grouping: true });
+    return;
+  }
+  
   if (!game.value.round) {
     console.log("Cannot place chess: not your turn, round=", game.value.round, "status=", game.value.status, "gameMode=", game.value.gameMode);
     ElMessage.warning({ message: "It's not your turn now", grouping: true });
