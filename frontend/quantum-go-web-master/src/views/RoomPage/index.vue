@@ -110,9 +110,9 @@ const initGame = async (data: Record<string, any>) => {
   await store.dispatch("game/setGameInfo", data);
   console.log("Initializing game with data:", data);
   
-  // 判断是否是AI对战房间：visitor_id存在且status为playing
+  // 判断是否是AI对战房间：visitor_id为"ai_player"且status为playing
   // 或者从URL参数中判断是否是AI模式
-  const isAIGame = data.visitor_id !== null && data.status === "playing";
+  const isAIGame = data.visitor_id === "ai_player" && data.status === "playing";
   console.log("Is AI game:", isAIGame, "visitor_id:", data.visitor_id, "status:", data.status);
   
   // 如果从URL参数判断是AI模式，强制设置为AI模式

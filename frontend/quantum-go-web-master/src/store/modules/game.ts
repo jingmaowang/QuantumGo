@@ -100,8 +100,8 @@ const actions = {
     state.model = model;
     state.records = chessman_records ?? [];
     
-    // 判断是否是AI对战房间：visitor_id存在且status为playing
-    const isAIGame = visitor_id !== null && status === "playing";
+    // 判断是否是AI对战房间：visitor_id为"ai_player"且status为playing
+    const isAIGame = visitor_id === "ai_player" && status === "playing";
     console.log("setGameInfo: Is AI game:", isAIGame, "visitor_id:", visitor_id, "status:", status);
     
     // 如果从URL参数判断是AI模式，强制设置为AI模式
