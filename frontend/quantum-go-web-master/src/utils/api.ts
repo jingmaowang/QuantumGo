@@ -2,7 +2,7 @@ import axios from "axios";
 import Config from "@/config";
 import CryptoJS from "crypto-js";
 import { testRegister as registerUser, testLogin as loginUser } from "./supabase-test";
-import { createRoom as supabaseCreateRoom, getGameInfo as supabaseGetGameInfo } from "./supabase-room";
+import { createRoom as supabaseCreateRoom, getGameInfo as supabaseGetGameInfo, updatePlayerMove as supabaseUpdatePlayerMove, aiMove as supabaseAiMove } from "./supabase-room";
 import { Response } from "@/utils/types";
 
 class Api {
@@ -55,19 +55,16 @@ class Api {
   }
 
   public async aiMove(roomId: string, userId: string, gameMode: string = "ai", boardState?: any): Promise<Response> {
-    const data = { 
-      room_id: roomId, 
-      user_id: userId, 
-      game_mode: gameMode,
-      board_state: boardState // 传递当前棋盘状态
-    };
-    return this.request("/aiMove", data);
+    // 使用 Supabase AI 移动
+    const result = await supabaseAiMove(roomId, userId, gameMode, boardState);
+    return result;
   }
 
   // 更新玩家移动状态接口
   public async updatePlayerMove(roomId: string, userId: string, position: string, gameMode: string, board?: any): Promise<Response> {
-    const data = { room_id: roomId, user_id: userId, position: position, game_mode: gameMode, board: board };
-    return this.request("/updatePlayerMove", data);
+    // 使用 Supabase 更新玩家移动
+    const result = await supabaseUpdatePlayerMove(roomId, userId, position, gameMode, board);
+    return result;
   }
 }
 

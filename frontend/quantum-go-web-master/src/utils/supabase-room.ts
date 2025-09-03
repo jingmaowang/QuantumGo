@@ -131,3 +131,83 @@ export async function joinRoom(roomId: string, visitorId: string) {
     return { success: false, status: 500, data: { error: error.message } }
   }
 }
+
+// 更新玩家移动状态
+export async function updatePlayerMove(roomId: string, userId: string, position: string, gameMode: string, board?: any) {
+  try {
+    console.log('Updating player move in Supabase...')
+    
+    // 获取当前房间信息
+    const { data: roomData, error: fetchError } = await supabase
+      .from('room_infos')
+      .select('*')
+      .eq('room_id', roomId)
+      .single()
+
+    if (fetchError) {
+      console.error('Failed to fetch room data:', fetchError)
+      throw fetchError
+    }
+
+    // 更新房间信息
+    const updates = {
+      moves: roomData.moves + 1,
+      board: board || roomData.board,
+      chessman_records: roomData.chessman_records || []
+    }
+
+    const { data, error } = await supabase
+      .from('room_infos')
+      .update(updates)
+      .eq('room_id', roomId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Supabase update player move error:', error)
+      throw error
+    }
+
+    console.log('Player move updated successfully:', data)
+    return { success: true, status: 200, data }
+  } catch (error: any) {
+    console.error('Update player move error:', error)
+    return { success: false, status: 500, data: { error: error.message } }
+  }
+}
+
+// AI 移动（简化版本，返回随机位置）
+export async function aiMove(roomId: string, userId: string, gameMode: string = "ai", boardState?: any) {
+  try {
+    console.log('AI move in Supabase...')
+    
+    // 简单的 AI 逻辑：随机选择一个位置
+    const model = boardState?.model || 9
+    const size = model
+    
+    // 生成随机位置
+    const x = Math.floor(Math.random() * size)
+    const y = Math.floor(Math.random() * size)
+    const position = `${x},${y}`
+    
+    // 简单的 AI 移动响应
+    const aiMove = {
+      position: position,
+      type: "white", // AI 是白方
+      message: "AI 移动"
+    }
+
+    console.log('AI move generated:', aiMove)
+    return { 
+      success: true, 
+      status: 200, 
+      data: { 
+        ai_move: aiMove,
+        message: "AI 移动成功"
+      } 
+    }
+  } catch (error: any) {
+    console.error('AI move error:', error)
+    return { success: false, status: 500, data: { error: error.message } }
+  }
+}
