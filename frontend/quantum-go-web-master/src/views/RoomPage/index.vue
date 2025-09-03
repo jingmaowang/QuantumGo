@@ -163,108 +163,33 @@ const initGame = async (data: Record<string, any>) => {
   ws = new WebSocket(`${Config.wsUrl}/${user.value.id}/${roomId}`);
   console.log("WebSocket created:", ws);
   
-  ws.onopen = () => {
-    console.log("Connected to WebSocket server");
-    wsStatus.value = true;
-  };
-  
-  ws.onclose = () => {
-    wsStatus.value = false;
-    ElMessage.warning(lang.value.text.room.ws_disconnected);
-    console.log("WebSocket connection closed");
-  };
-  
-  ws.onerror = (error: any) => {
-    wsStatus.value = false;
-    ElMessage.warning(lang.value.text.room.ws_disconnected);
-    console.error("WebSocket error:", error);
-  };
-  
-  ws.onmessage = (event: any) => {
-    const message = event.data;
-    console.log("Received WebSocket message:", message);
-    const data = JSON.parse(message);
+  // 设置 Supabase 实时监听房间变化
+  const supabase = (window as any).supabase || null;
+  if (supabase) {
+    const channel = supabase
+      .channel(`room-${roomId}`)
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'room_infos',
+          filter: `room_id=eq.${roomId}`
+        }, 
+        (payload: any) => {
+          console.log('Room updated:', payload);
+          // 处理房间更新
+          if (payload.new) {
+            store.dispatch("game/setGameInfo", payload.new);
+          }
+        }
+      )
+      .subscribe();
     
-    if (data.type === "updateChess") {
-      game.value.moves++;
-      const chessman = data.data.putChess as Chessman;
-      console.log("Processing chess move:", chessman);
-      if (chessman.position !== "0,0") {
-        store.dispatch("game/putChess", chessman);
-      }
-      store.commit("game/setRound", true);
-      progress.value = 100;
-      timer = setInterval(() => {
-        if (isWaitingBack.value === true) {
-          return;
-        }
-        const reduce = 0.1 / game.value.countdown * 100;
-        if (progress.value > reduce) {
-          progress.value -= 0.1 / game.value.countdown * 100;
-        } else {
-          progress.value = 0;
-          passChess();
-          ElMessage.warning(lang.value.text.room.time_up);
-          clearInterval(timer);
-        }
-      }, 100);
-      
-      // 检查是否还有可下棋的位置
-      let status = false;
-      for (let i = 0; i < 81; i++) {
-        const x = Math.floor((i - 1) / 9) + 1;
-        const y = (i - 1) % 9 + 1;
-        const position = `${x},${y}`;
-        if (canPutChess(game.value.board1, position, chessman.type, game.value.model) || canPutChess(game.value.board2, position, chessman.type, game.value.model)) {
-          status = true;
-          break;
-        }
-      }
-      
-      if (!status) {
-        let winner: string;
-        if (game.value.blackPoints - game.value.whiteLost - 7 > 0) {
-          winner = "black";
-        } else {
-          winner = "white";
-        }
-        ws.send(JSON.stringify({ type: "setWinner", data: { winner: winner } }));
-        if (winner === game.value.camp) {
-          ElMessageBox.alert(lang.value.text.room.winner, "Finish", { confirmButtonText: "OK" });
-        } else {
-          ElMessageBox.alert(lang.value.text.room.loser, "Finish", { confirmButtonText: "OK" });
-        }
-      }
-    } else if (data.type === "startGame") {
-      game.value.status = "playing";
-      ElMessage.success(lang.value.text.room.start_game);
-    } else if (data.type === "setWinner") {
-      store.commit("game/setStatus", "finished");
-      store.commit("game/setRound", false);
-      const winner = data.data.winner;
-      if (winner === game.value.camp) {
-        ElMessageBox.alert(lang.value.text.room.winner, "Finish", { confirmButtonText: "OK" });
-      } else {
-        ElMessageBox.alert(lang.value.text.room.loser, "Finish", { confirmButtonText: "OK" });
-      }
-    } else if (data.type === "updateRoomInfo") {
-      store.dispatch("game/updateRoomInfo", data.data);
-    } else if (data.type === "sendMessage") {
-      barrage.value.sendBullet(data.data.message, 1);
-    } else if (data.type === "backChessApply") {
-      backApply.value = true;
-    } else if (data.type === "backChessResult") {
-      const operation = data.data.operation;
-      isWaitingBack.value = false;
-      loadingModel.close();
-      if (operation) {
-        ElMessage.success(lang.value.text.room.back_apply_success);
-        store.dispatch("game/backChess", data.data.chessman);
-      } else {
-        ElMessage.warning(lang.value.text.room.back_apply_fail);
-      }
-    }
-  };
+    // 保存 channel 引用以便清理
+    (window as any).roomChannel = channel;
+  }
+  
+  // WebSocket 消息处理已移除，现在使用 Supabase 实时功能
 };
 
 const putChess = async (position: string) => {
@@ -304,9 +229,9 @@ const putChess = async (position: string) => {
     return;
   }
   
-  // 普通PVP模式，通过WebSocket处理
+  // 普通PVP模式，使用 Supabase 处理
   if (!wsStatus.value) {
-    ElMessage.warning({ message: lang.value.text.room.ws_connection_error, grouping: true });
+    ElMessage.warning({ message: "连接错误", grouping: true });
     return;
   }
   
@@ -316,27 +241,15 @@ const putChess = async (position: string) => {
     return;
   }
   
-  // 创建棋子对象
-  const chessman: Chessman = {
-    position: position,
-    type: game.value.camp,
-    brother: position
-  };
+  // 直接使用 Supabase 处理下棋
+  const success = await store.dispatch("game/putChess", { position, type: game.value.camp });
+  if (success) {
+    console.log("PVP mode: chess placed successfully");
+  } else {
+    console.log("PVP mode: failed to place chess");
+  }
   
-  // 先添加到本地棋盘
-  store.dispatch("game/putChess", { position, type: game.value.camp });
-  
-  // 通过WebSocket发送
-  ws.send(JSON.stringify({
-    type: "updateChess",
-    data: {
-      putChess: chessman,
-      board: [...game.value.board1],
-      black_lost: game.value.blackLost,
-      white_lost: game.value.whiteLost,
-      chessman_records: game.value.records
-    }
-  }));
+  // WebSocket 发送已移除，现在使用 Supabase
 };
 
 const isWaitingBack = ref(false);
