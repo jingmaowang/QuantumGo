@@ -16,8 +16,7 @@
     }
   ],
   "env": {
-    "VITE_SUPABASE_URL": "@vite_supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
-    "DATABASE_URL": "@database_url"
+    "VITE_SUPABASE_URL": "https://xubcabvalkimnemlpflz.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1YmNhYnZhbGtpbW5lbWxwZmx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5Njg5MDAsImV4cCI6MjA1MDU0NDkwMH0.example"
   }
 }
