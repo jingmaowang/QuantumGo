@@ -10,13 +10,16 @@
     },
     {
       "src": "backend/quantum-go-api-main/Cargo.toml",
-      "use": "@vercel/rust"
+      "use": "@vercel/rust",
+      "config": {
+        "includeFiles": ["backend/quantum-go-api-main/**"]
+      }
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/backend/quantum-go-api-main/src/main.rs"
+      "dest": "/backend/quantum-go-api-main"
     },
     {
       "src": "/(.*)",
