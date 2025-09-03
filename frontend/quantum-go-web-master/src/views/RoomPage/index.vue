@@ -161,34 +161,29 @@ const initGame = async (data: Record<string, any>) => {
   // 普通PVP模式，使用 Supabase 实时功能
   console.log("PVP mode detected, using Supabase real-time");
   wsStatus.value = true; // 直接设置为可用，因为使用 Supabase
-  
+
   // 设置 Supabase 实时监听房间变化
   const supabase = (window as any).supabase || null;
   if (supabase) {
     const channel = supabase
       .channel(`room-${roomId}`)
-      .on('postgres_changes', 
-        { 
-          event: 'UPDATE', 
-          schema: 'public', 
+      .on('postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
           table: 'room_infos',
           filter: `room_id=eq.${roomId}`
-        }, 
+        },
         (payload: any) => {
           console.log('Room updated:', payload);
-          // 处理房间更新
           if (payload.new) {
             store.dispatch("game/setGameInfo", payload.new);
           }
         }
       )
       .subscribe();
-    
-    // 保存 channel 引用以便清理
     (window as any).roomChannel = channel;
   }
-  
-  // WebSocket 消息处理已移除，现在使用 Supabase 实时功能
 };
 
 const putChess = async (position: string) => {
@@ -247,8 +242,6 @@ const putChess = async (position: string) => {
   } else {
     console.log("PVP mode: failed to place chess");
   }
-  
-  // WebSocket 发送已移除，现在使用 Supabase
 };
 
 const isWaitingBack = ref(false);
