@@ -1,15 +1,5 @@
 // Supabase 房间管理工具
-import { createClient } from '@supabase/supabase-js'
-
-// 使用环境变量
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error('Supabase 环境变量未设置')
-}
-
-export const supabase = createClient(supabaseUrl, supabaseKey)
+import { supabase } from './supabase'
 
 // 创建房间
 export async function createRoom(

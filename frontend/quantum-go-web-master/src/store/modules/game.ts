@@ -75,7 +75,20 @@ const mutations = {
 const actions = {
   async setGameInfo({ commit, rootState, state }: any, data: Record<string, any>) {
     const { room_id, status, owner_id, round, board, moves, white_lost, black_lost, countdown, model, chessman_records, visitor_id } = data;
-    const boardMap = new Map(JSON.stringify(board) === "{}" ? [] : board);
+    
+    // 处理 board 数据 - 从 Supabase 返回的 JSON 对象转换为 Map
+    let boardMap = new Map();
+    if (board && typeof board === 'object') {
+      // 如果 board 是对象，尝试转换为 Map
+      if (board.board1 && typeof board.board1 === 'object') {
+        boardMap = new Map(Object.entries(board.board1));
+      } else if (Array.isArray(board)) {
+        boardMap = new Map(board);
+      } else {
+        // 如果 board 是空对象或其他格式，创建空 Map
+        boardMap = new Map();
+      }
+    }
     state.board1.clear();
     state.board2.clear();
     state.roomId = room_id;

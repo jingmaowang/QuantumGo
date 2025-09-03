@@ -1,11 +1,5 @@
 // 临时测试文件 - 直接测试 Supabase 连接
-import { createClient } from '@supabase/supabase-js'
-
-// 使用环境变量（更安全的方式）
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://xubcabvalkimnemlpflz.supabase.co'
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1YmNhYnZhbGtpbW5lbWxwZmx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5Njg5MDAsImV4cCI6MjA1MDU0NDkwMH0.example'
-
-export const supabase = createClient(supabaseUrl, supabaseKey)
+import { supabase } from './supabase'
 
 // 测试用户注册
 export async function testRegister(username: string, password: string) {

@@ -40,7 +40,7 @@ class Api {
   public async getUserInfo(user_name: string, row_password: string): Promise<Response> {
     // 使用 Supabase 登录
     const result = await loginUser(user_name, row_password);
-    return { success: result.success, status: result.success ? 200 : 401, data: result.data || { error: result.error } };
+    return { success: result.success, status: result.success ? 200 : 401, data: result.data || { error: result.error } };ai对战
   }
 
   public async userRegister(user_name: string, row_password: string): Promise<Response> {
