@@ -1,7 +1,7 @@
 import axios from "axios";
 import Config from "@/config";
 import CryptoJS from "crypto-js";
-import { registerUser, loginUser, createRoom, getLeaderboard } from "./supabase";
+import { testRegister as registerUser, testLogin as loginUser } from "./supabase-test";
 import { Response } from "@/utils/types";
 
 class Api {
@@ -47,9 +47,8 @@ class Api {
   }
 
   public async getLeaderboard(model: number, limit: number = 50): Promise<Response> {
-    // 使用 Supabase 获取排行榜
-    const result = await getLeaderboard(model, limit);
-    return result;
+    // 临时返回空数据
+    return { success: true, data: [] };
   }
 
   public async aiMove(roomId: string, userId: string, gameMode: string = "ai", boardState?: any): Promise<Response> {
