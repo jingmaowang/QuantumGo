@@ -96,7 +96,7 @@ onMounted(async () => {
     redirectToHomeWithMessage(lang.value.text.join.room_finished);
   } else if (data.status === "playing" || data.gameMode === "ai") {
     // AI对战模式或者普通对战模式
-    if (data.gameMode !== "ai" && user.value.id !== data.owner_id && user.value.id !== data.visitor_id) {
+    if (data.gameMode !== "ai" && user.value.id !== data.owner_id && data.visitor_id && user.value.id !== data.visitor_id) {
       redirectToHomeWithMessage(lang.value.text.join.room_playing);
     }
   }

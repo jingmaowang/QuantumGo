@@ -131,11 +131,22 @@ const actions = {
       state.gameMode = "pvp";
       console.log("PvP mode: auto-starting game from waiting status");
       
-      // 更新数据库中的房间状态
+      // 更新数据库中的房间状态和访客ID
       try {
         const { updateRoomInfo } = await import("../../utils/supabase-room");
-        await updateRoomInfo(room_id, { status: "playing" });
-        console.log("PvP mode: room status updated to playing in database");
+        const isOwner = owner_id === rootState.user.id;
+        if (!isOwner && !visitor_id) {
+          // 第二个玩家加入，设置 visitor_id
+          await updateRoomInfo(room_id, { 
+            status: "playing", 
+            visitor_id: rootState.user.id 
+          });
+          console.log("PvP mode: second player joined, visitor_id set to:", rootState.user.id);
+        } else {
+          // 房主加入，只更新状态
+          await updateRoomInfo(room_id, { status: "playing" });
+          console.log("PvP mode: room status updated to playing in database");
+        }
       } catch (error) {
         console.error("PvP mode: failed to update room status:", error);
       }
