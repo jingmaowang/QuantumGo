@@ -298,12 +298,9 @@ const actions = {
       blackChess2.type = "white";
       whiteChess2.type = "black";
     }
-    // 在量子围棋中，每个玩家需要下两个棋子（黑子和白子）才能完成一轮
-    // 只有当 subStatus 变为 "common" 时，才切换回合
-    console.log("PvP mode: after move, subStatus=", state.subStatus, "current round=", state.round);
-    if (state.gameMode !== "ai" && state.subStatus === "common") {
+    // 在AI模式下，回合管理由AI响应决定，不在玩家落子时立即切换
+    if (state.gameMode !== "ai") {
       commit("setRound", !state.round);
-      console.log("PvP mode: round switched, new round=", !state.round);
     }
     const capturedChess1 = getCapturedChess(state.board1, chessman.type, state.model);
     const capturedChess2_row = getCapturedChess(state.board2, chessman.type, state.model);
