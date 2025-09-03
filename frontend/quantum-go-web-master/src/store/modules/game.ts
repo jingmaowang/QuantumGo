@@ -144,6 +144,7 @@ const actions = {
     } else {
       state.camp = isOwner ? "black" : "white";
       state.round = isOwner ? round === "black" : round === "white";
+      console.log("PvP mode: isOwner=", isOwner, "round=", round, "camp=", state.camp, "state.round=", state.round);
     }
     const count = boardMap.size;
     if (count === 0) {

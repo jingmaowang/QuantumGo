@@ -145,20 +145,15 @@ const putChess = async (index: number) => {
   }
   
   // 检查游戏状态和回合
-  if (!((game.value.round || !game.value.roomId) && game.value.status !== "finished")) {
-    console.log("Cannot place chess: round=", game.value.round, "status=", game.value.status, "gameMode=", game.value.gameMode);
-    // 在AI模式下，提供更具体的错误信息
-    if (game.value.gameMode === "ai") {
-      if (!game.value.round) {
-        ElMessage.warning({ message: "It's not your turn now", grouping: true });
-      } else if (game.value.status === "finished") {
-        ElMessage.warning({ message: "Game is finished", grouping: true });
-      } else {
-        ElMessage.warning({ message: "Cannot place chess in current state", grouping: true });
-      }
-    } else {
-      ElMessage.warning({ message: lang.value.text.board.put_chess_error, grouping: true });
-    }
+  if (game.value.status === "finished") {
+    console.log("Cannot place chess: game is finished");
+    ElMessage.warning({ message: "Game is finished", grouping: true });
+    return;
+  }
+  
+  if (!game.value.round) {
+    console.log("Cannot place chess: not your turn, round=", game.value.round, "status=", game.value.status, "gameMode=", game.value.gameMode);
+    ElMessage.warning({ message: "It's not your turn now", grouping: true });
     return;
   }
   
